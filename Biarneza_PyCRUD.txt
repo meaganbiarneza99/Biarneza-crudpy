@@ -1,0 +1,106 @@
+from tkinter import *
+import tkinter.messagebox as MessageBox
+import mysql.connector as mysql
+
+root = Tk()
+root.geometry("230x150")
+root.title("Simple CRUD")
+id = Label(root, text="Enter ID:")
+id.place(x=10, y=30)
+id_entry = Entry(root)
+id_entry.place(x=70, y=30)
+
+name = Label(root, text="Name:")
+name.place(x=10, y=50)
+name_entry = Entry(root)
+name_entry.place(x=70, y=50)
+
+phone = Label(root, text="Phone:")
+phone.place(x=10, y=70)
+phone_entry = Entry(root)
+phone_entry.place(x=70, y=70)
+
+def Add():
+    id = id_entry.get()
+    name = name_entry.get()
+    phone = phone_entry.get()
+    mysqldb = mysql.connect(host="localhost", user="root", password="", database="crud")
+    mycursor = mysqldb.cursor()
+    if (id == "" or name == "" or phone == ""):
+        MessageBox.showifo("ALERT", "Please Enter all fields")
+    else:
+        sql = "INSERT INTO person set name= %s, phone= %s, id= %s"
+        val = (name, phone, id)
+        mycursor.execute(sql,val)
+        mycursor.execute("commit")
+        MessageBox.showinfo("Status", "Successfully Inserted")
+        id_entry.delete("0", "end")
+        name_entry.delete("0", "end")
+        phone_entry.delete("0", "end")
+
+    mysqldb.close()
+
+
+def update ():
+    id = id_entry.get()
+    name = name_entry.get()
+    phone = phone_entry.get()
+    mysqldb = mysql.connect(host="localhost", user="root", password="", database="crud")
+    mycursor = mysqldb.cursor()
+    if (id == "" or name == "" or phone == ""):
+        MessageBox.showifo("ALERT", "Please Enter all fields")
+        MessageBox.showwarning("showwarning", "Please Search ID to update info")
+    else:
+        sql = "Update person set name= %s, phone= %s, id= %s"
+        val = (name, phone, id)
+        mycursor.execute(sql, val)
+        mysqldb.commit()
+        lastid = mycursor.lastrowid
+        MessageBox.showinfo("information", "record updated successfully")
+        id_entry.delete("0", "end")
+        name_entry.delete("0", "end")
+        phone_entry.delete("0", "end")
+        mysqldb.close()
+
+def delete():
+    id = id_entry.get()
+
+    mysqldb = mysql.connect(host="localhost", user="root", password="", database="crud")
+    mycursor = mysqldb.cursor()
+    if (id == "" or name == "" or phone == ""):
+        MessageBox.showifo("ALERT", "Please Enter all fields")
+        MessageBox.showinfo("showinfo", "Please Search ID to delete info")
+    else:
+        sql = "delete from person where id = %s"
+        val = (id,)
+        mycursor.execute(sql, val)
+        mysqldb.commit()
+        lastid = mycursor.lastrowid
+        MessageBox.askquestion("Delete", "are you sure you want to delete?")
+        id_entry.delete("0", "end")
+        name_entry.delete("0", "end")
+        phone_entry.delete("0", "end")
+        mysqldb.close()
+
+def Select():
+    if (id_entry.get() == ""):
+        MessageBox.showerro("Error", "ID is required to select row!")
+    else:
+        mysqldb = mysql.connect(host="localhost", user="root", password="", database="crud")
+        cursor = mysqldb.cursor()
+        cursor.execute("SELECT * FROM person WHERE id LIKE %s", ("%" + id_entry.get() + "%",))
+        rows = cursor.fetchall()
+
+        for row in rows:
+                name_entry.insert(0, row[1])
+                phone_entry.insert(0, row[2])
+
+        mysqldb.close();
+
+btn_Insert = Button(root, text="Insert", command=Add).place(x=15, y=100)
+btn_Delete = Button(root, text="Delete", command=delete).place (x=60, y=100)
+btn_Update = Button(root, text="Update", command=update).place (x=110, y=100)
+btn_Select = Button(root, text="Select", command=Select).place (x=165, y=100)
+
+root.eval('tk::PlaceWindow . center')
+root.mainloop()
